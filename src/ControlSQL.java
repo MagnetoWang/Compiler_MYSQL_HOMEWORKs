@@ -11,14 +11,15 @@ public class ControlSQL {
 		this.head = head ;
 		this.tail = tail ;
 	}
-	@SuppressWarnings({ "static-access", "deprecation", "resource" })
+	
+	@SuppressWarnings("static-access")
 	public static void main(String[] args) {
 		
 
 	      System.out.println("============================");
-	      System.out.println("\u5a06\u3223\u7e4b\u6d63\u8de8\u6564\u7ee0\ufffd\u9357\u66e0\u5897\u93c8\ue102\u6b91MYSQL\u7f02\u682c\u7627\u9363\ufffd");
-	      System.out.println("\u9417\u581f\u6e70\u9359\u51e4\u7d300049");
-	      System.out.println("Welcome to the easy MYSQL");
+	      System.out.println("欢迎使用简单版本的MYSQL编译器");
+	      System.out.println("版本号：0049");
+		  System.out.println("Welcome to the easy MYSQL");
 	      System.out.println("Version 0049");
 	      
 	      
@@ -31,11 +32,13 @@ public class ControlSQL {
 
 	      System.out.println("============================");
 			Scanner in =new Scanner(System.in);
-			 java.io.StringReader sr = new java.io.StringReader( in.nextLine() );
+			String text=in.nextLine();
+			 java.io.StringReader sr = new java.io.StringReader( text );
 		  		java.io.Reader r = new java.io.BufferedReader( sr );
-			 MySQL parser;
+			
+			MySQL parser=new MySQL(r);
 
-		      parser = new MySQL(r);
+		    
 		      
 	      
 	      
@@ -46,15 +49,59 @@ public class ControlSQL {
 	      System.out.print("MYSQL>>");
 	      // System.out.println();
 	      try
-	      {
-	 		  sr = new java.io.StringReader( in.nextLine() );
+	      {    text=in.nextLine();
+	 		   sr = new java.io.StringReader( text );
 		  		 r = new java.io.BufferedReader( sr );
-		  		MySQL.ReInit(r);
-		  		MySQLTokenManager TM=parser.token_source;
-	        MySQL.one_line();
-	        @SuppressWarnings("unused")
-			Token TokenTest =  MySQL.getToken(2);
-	        SimpleCharStream StreamTest = MySQL.jj_input_stream;
+		  		 
+		  		System.out.println("============================");
+		  		
+		  		System.out.println("开始词法分析");
+		  		MySQL.state=MySQL.LEX;
+//		  		System.out.println("============================");
+		  		parser.ReInit(r);
+		  		parser.one_line();
+		  		
+//		  		System.out.println("============================");
+		  		
+		  		System.out.println("符合正则表达式");
+		  		System.out.println("============================");
+		  		System.out.println();
+		  		
+		  		
+		  		System.out.println("============================");
+		  		
+		  		System.out.println("开始语法分析");
+		  		System.out.println("============================");
+		  		
+		  		
+		  		MySQL.state=MySQL.AST;
+		 		  sr = new java.io.StringReader( text );
+			  		 r = new java.io.BufferedReader( sr );
+		  		
+		  		parser.ReInit(r);
+		  		parser.one_line();
+		  		
+		  		
+		  		System.out.println("============================");
+		  		
+		  		System.out.println("开始语法制导翻译");
+		  		System.out.println("============================");
+		  		
+		  		MySQL.state=MySQL.SDT;
+		 		  sr = new java.io.StringReader( text );
+			  		 r = new java.io.BufferedReader( sr );
+		  		
+		  		parser.ReInit(r);
+		  		parser.one_line();
+		  		
+		  		
+
+		  		
+//		  		MySQLTokenManager TM=parser.token_source;
+//	        
+//	        @SuppressWarnings("unused")
+//			Token TokenTest =  MySQL.getToken(2);
+//	        SimpleCharStream StreamTest = MySQL.jj_input_stream;
 //	        System.out.println(StreamTest.getColumn());
 //	        System.out.println(StreamTest.getBeginLine());
 //	        System.out.println(StreamTest.GetImage());
@@ -83,6 +130,9 @@ public class ControlSQL {
 	        System.out.println(e.getMessage());
 	        break;
 	      }
+	      finally {
+			
+		}
 	    }
 	}
 }

@@ -43,10 +43,15 @@ import java.util.Set;
 
 public class MySQL
 {
+  public static int state=1001;
+  public static int LEX=1001;
+  public static int AST=1002;
+  public static int SDD=1003;
+  public static int SDT=1004;
   public static void main(String args []) throws ParseException
   {
-   
-    MySQL parser;
+     
+      MySQL parser;
     
       parser = new MySQL(System.in);
       System.out.println("============================");
@@ -270,10 +275,13 @@ TOKEN://描述标识符
 //   < COMPARE:"=">//(["="]["!="]["<>"][">"][">="]["<"]["<="]) >
 // }
 
-void compare():
+Token compare():
 {}
 {
-  "=" | "!="  | "<>" | ">" | ">=" | "<" | "<="
+ ( "=" | "!="  | "<>" | ">" | ">=" | "<" | "<=")
+  {
+    return MySQL.token;
+  }
 }
 
 
@@ -339,7 +347,9 @@ void STOPStatement():
 }
 
 void CreadStatement():
-{}{
+{
+  Token Token;
+}{
       "CREATE" (CreatTable()|CreatDatabase()) ";"
       
 
@@ -347,9 +357,10 @@ void CreadStatement():
 
 void CreatTable():
 {
-  Token creatToken;
+  Token Token;
 }{
-  "TABLE"
+  Token="TABLE"
+  {System.out.println(Token);}
   TableItem() 
   {
 
@@ -360,8 +371,14 @@ void TableItem():
 {}{ 
 
   IdentifierItem()
-  {System.out.println("TableName");
-  System.out.println(MySQL.token);
+  {
+    if(MySQL.state==MySQL.AST){
+      System.out.print("TableName  :   ");
+      System.out.println(MySQL.token);
+
+    }
+    
+   
   }
  [ <LEFTBRCKET>
   AttributeItem()
@@ -379,14 +396,20 @@ void TableItem():
 void AttributeItem():
 {}
 {
-  {System.out.println("============================");}
-  {System.out.println("AttributeItems");}
+  {
+   if(MySQL.state==MySQL.AST){
+    System.out.println("============================");
+    System.out.println("AttributeItems");
+
+   } 
+    }
   
   BasicDataTypeDeclaration() 
   ("," BasicDataTypeDeclaration() )*
 
   
-  {System.out.println("============================");}
+  {if(MySQL.state==MySQL.AST)
+    System.out.println("============================");}
 
 }
 
@@ -397,12 +420,13 @@ void BasicDataTypeDeclaration():
    ( IdentifierItem() 
    {
    
- 
-    System.out.println(MySQL.token);
+
+    if(MySQL.state==MySQL.AST)
+    System.out.print(MySQL.token+"   :   ");
 
     
   }
-  {if(MySQL.token!=null){
+  {if(MySQL.token!=null&&MySQL.state==MySQL.AST){
     System.out.println(MySQL.token.next);
 
   }}
@@ -428,10 +452,14 @@ void BasicDataTypeDeclaration():
 }
 
 void CreatDatabase():
-{}{
-  "DATABASE"IdentifierItem()
+{
+  Token Token;
+}{
+  "DATABASE"
+  Token=IdentifierItem()
   {
-    System.out.println("create A database");
+    if(MySQL.state==MySQL.AST)
+    System.out.println("create A database = "+Token);
   }
 }
 
@@ -441,7 +469,7 @@ void ShowStatement():
   "SHOW" (ShowDatabases()|ShowTables()) ";"
   {
     
-    System.out.println("ShowStatement");
+    // System.out.println("ShowStatement");
     
   }
 }
@@ -450,6 +478,7 @@ void ShowDatabases():
 {}{
   "DATABASES" 
   {
+    if(MySQL.state==MySQL.AST)
     System.out.println("ShowDatabases");
   }
 }
@@ -461,6 +490,7 @@ void ShowTables():
 {}{
  "TABLES"
  {
+   if(MySQL.state==MySQL.AST)
   System.out.println("ShowTables");
  }
 }
@@ -470,16 +500,19 @@ void ShowTables():
 
 void DropStatement():
 {}{
- "DROP" (DropDatabase()|DropTable())
+ "DROP" (DropDatabase()|DropTable())";"
 }
 
 
 
 void DropDatabase():
-{}{
-  "DATABASE" (IdentifierItem())";"
+{
+  Token temp;
+}{
+  "DATABASE" (temp=IdentifierItem())
   {
-    System.out.println("DropDatabase");
+    if(MySQL.state==MySQL.AST)
+    System.out.println("DropDatabase = "+temp);
   }
 }
 
@@ -489,10 +522,13 @@ void DropDatabase():
 
 
 void DropTable():
-{}{
-  "TABLE" (IdentifierItem())";"
+{
+  Token temp;
+}{
+  "TABLE" (temp=IdentifierItem())
   {
-    System.out.println("DropTable");
+    if(MySQL.state==MySQL.AST)
+    System.out.println("DropTable = "+temp);
   }
 }
 
@@ -501,10 +537,13 @@ void DropTable():
 
 
 void USEStatement ():
-{}{
- "USE" IdentifierItem()";"
+{
+  Token temp;
+}{
+ "USE" temp=IdentifierItem()";"
  {
-   System.out.println("USEStatement");
+  if(MySQL.state==MySQL.AST)
+   System.out.println("USEStatement = "+temp);
  }
 }
 
@@ -516,17 +555,25 @@ void USEStatement ():
 //INSERT INTO table_name (列1, 列2,...) VALUES (值1, 值2,....)
 
 void InsertStatement():
-{}
 {
-  "INSERT" "INTO"  IdentifierItem() (TableValues()|TableColumns()) ";" 
-  {
-    System.out.println("insert value");
+  Token temp;
+}
+{
+  "INSERT" "INTO" 
+   temp=IdentifierItem() 
+  { if(MySQL.state==MySQL.LEX)
+    System.out.println("INSERT SUCCESS");
+    if(MySQL.state==MySQL.AST)
+    System.out.println("TABLE = "+temp);
   }
+  (TableValues()|TableColumns()) ";" 
 }
 
 
 void TableValues():
-{}{
+{
+  Token temp;
+}{
    "VALUES"
   "("
    TableValue() ("," TableValue())*
@@ -534,9 +581,15 @@ void TableValues():
 }
 
 void TableValue():
-{}{
+{
+  Token temp;
+}{
   (
-    (IdentifierItem())*
+    temp=IdentifierItem()
+    {
+      if(MySQL.state==MySQL.AST)
+      System.out.println("TABLEVALUE = "+temp);
+    }
     
     // <SingleQuotes> <SQL_IDENTIFIER> <SingleQuotes>
     // ObjectName()  |
@@ -547,19 +600,27 @@ void TableValue():
 
 
 void TableColumns():
-{}{
+{
+  Token temp;
+}{
    "("
    TableColumn()("," TableColumn())*
    ")"
-   TableValues(){
-     System.out.println("INSERT columns ");
-   }
+   TableValues()
+
 
 }
 
 void TableColumn():
-{}{
-  IdentifierItem()
+{
+  Token temp;
+}{
+  temp=IdentifierItem()
+  {
+
+    if(MySQL.state==MySQL.AST)
+    System.out.println("TABLENAME = "+temp);
+   }
 }
 
 // void TableColumn():
@@ -594,7 +655,8 @@ void SelectStatement():
    SelectBaseStatement()
    ";"
    {
-    System.out.println(" selectStatement OVER");
+    if(MySQL.state==MySQL.LEX)
+    System.out.println(" SELECT SUCCESS");
   }
 
 
@@ -627,7 +689,7 @@ void TableList():
 //  TableItem()//("," TableItem())*
   SelectTableItem()("," SelectTableItem())*
     {
-    System.out.println(" selectBase ");
+    // System.out.println(" selectBase ");
   }
 
 }
@@ -640,22 +702,36 @@ void TableList():
 //}
 
 void SelectTableItem():
-{}
+{Token temp;}
 {
-  IdentifierItem()
+  temp=IdentifierItem() { 
+  if(MySQL.state==MySQL.AST){
+    System.out.println("TableName = "+temp);
+  } }
 }
 
 //列名 单独处理
 void SelectList():
-{}
+{Token temp;}
 {
-    "*" | (SelectItem() ("," SelectItem())*)
+    (("*" ){
+      if(MySQL.state==MySQL.AST){
+        System.out.println("Columnse = ALL");
+      }
+    })| (SelectItem() ("," SelectItem())*)
 }
 
 void SelectItem():
-{}
+{Token temp;}
 {
-  IdentifierItem()
+  
+  temp = IdentifierItem()
+  {  
+    if(MySQL.state==MySQL.AST){
+      System.out.println("ColumnsName = "+temp);
+    }
+  
+  }
 }
 
 // 比较运算符	=,<,>,<=,>=,<>	比较两个表达式
@@ -671,7 +747,7 @@ void WhereStatement():
   
   SQLCondition()(SQLCondition())*
   {
-    System.out.println("where OVER");
+    // System.out.println("where OVER");
   }
 
   
@@ -700,16 +776,25 @@ void SQLCondition():
 }
 //逻辑表达式
 void SQLLogicalExpression():
-{}
+{
+  Token temp1,temp2,temp3;
+}
 {
   ( "(" )*
 
-  (IdentifierItem()
-  compare()
-  IdentifierItem())
+  (temp1=IdentifierItem()
+  temp2=compare()
+  temp3=IdentifierItem())
   
 
   ( ")" )*
+  {
+    if(MySQL.state==MySQL.AST){
+      System.out.println("LEFT = "+temp1);
+      System.out.println("LOGICAL = "+temp2);
+      System.out.println("RIGHT = "+temp3);
+    }
+  }
 
 }
 
@@ -752,6 +837,7 @@ void DeleteStatement():
 //  IdentifierItem()
   ";"
   {
+    if(MySQL.state==MySQL.LEX)
     System.out.println("DeleteStatement OVER");
   }
 
@@ -775,6 +861,7 @@ void UpdateStatement():
 
   ";"
   {
+    if(MySQL.state==MySQL.LEX)
     System.out.println("UpdateStatement OVER");
   }
 
@@ -791,14 +878,19 @@ void ObjectName():
 
 
 
-void IdentifierItem():
-{}
+Token IdentifierItem():
 {
-  (<SQL_IDENTIFIER> ["." <SQL_IDENTIFIER>] )
+  Token Token;
+}
+{
+ ( (<SQL_IDENTIFIER> ["." <SQL_IDENTIFIER>] )
   |  (<SQL_BIND>)
   | ( <SingleQuotes> <SQL_IDENTIFIER> <SingleQuotes>)
   | (<SQL_CHAR_LITERAL>)
-  |  < SQL_CONSTANT>
+  |  < SQL_CONSTANT>)
+  {
+    return MySQL.token;
+  }
 }
 
 
