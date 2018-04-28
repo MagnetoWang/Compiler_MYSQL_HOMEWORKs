@@ -1,0 +1,55 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+options
+{
+  static = true;
+}
+
+PARSER_BEGIN(Simple1)
+package Compile.simpleProject;
+
+public class Simple1
+{
+  /** Main entry point. */
+  public static void main(String args[]) throws ParseException {
+    Simple1 parser = new Simple1(System.in);
+    parser.Input();
+  }
+}
+
+PARSER_END(Simple1)
+
+
+//产生式 input 和matchBrace
+/** Root production. */
+void Input() :
+{}
+The first production above says that the non-terminal "Input" expands
+
+to the non-terminal "MatchedBraces" followed by zero or more line
+
+terminators ("\n" or "\r") and then the end of file.
+
+{
+	//进入下一个产生式matchBraces
+  MatchedBraces() ("\n"|"\r")* <EOF>
+}
+
+/** Brace matching production. */
+void MatchedBraces() :
+{}
+{
+	//Square brackets [...] in a JavaCC input file indicate that the ... is optional.
+  "{" [ MatchedBraces() ] "}"
+}
+
+
+
+
+
+'\ u0030'到'\ u0039'，ISO-LATIN-1数字（'0'到'9'）
+'\ u0660'到'\ u0669'，阿拉伯 - 印度数字
+'\ u06F0'到'\ u06F9'，扩展阿拉伯 - 印度数字
+'\ u0966'到'\ u096F'，梵文数字
+'\ uFF10'到'\ uFF19'，全角数字
