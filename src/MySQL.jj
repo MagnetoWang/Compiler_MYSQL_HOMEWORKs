@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
+import java.io.IOException;
 
 public class MySQL
 {
@@ -48,6 +49,13 @@ public class MySQL
   public static int AST=1002;
   public static int SDD=1003;
   public static int SDT=1004;
+  public static String CurrentDatabase="";
+  public static Create SQL_create = new Create();
+  public static Drop SQL_drop = new Drop();
+  public static Use SQL_use = new Use();
+  public static Show SQL_show = new Show();
+  public static Insert SQL_insert = new Insert();
+
   public static void main(String args []) throws ParseException
   {
      
@@ -359,11 +367,27 @@ void CreatTable():
 {
   Token Token;
 }{
+
   Token="TABLE"
-  {System.out.println(Token);}
+  {System.out.println(Token);
+
+    if(MySQL.state==MySQL.SDT){
+      SQL_create.setCurrentDatabase(CurrentDatabase);
+    }
+
+  
+  }
   TableItem() 
   {
-
+    if(MySQL.state==MySQL.SDT){
+      try {
+        System.out.println("写表");
+        SQL_create.WriteTable();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
   }
 
 }
@@ -376,6 +400,13 @@ void TableItem():
       System.out.print("TableName  :   ");
       System.out.println(MySQL.token);
 
+    }
+    if(MySQL.state==MySQL.SDT){
+      SQL_create.CreateTable(MySQL.token.toString());
+      System.out.println(SQL_create.getTable());
+
+
+      
     }
     
    
@@ -407,6 +438,14 @@ void AttributeItem():
   BasicDataTypeDeclaration() 
   ("," BasicDataTypeDeclaration() )*
 
+
+  {
+    // if(MySQL.state==MySQL.SDT){
+    //   System.out.print("语法制导翻译 写表 ： ");
+    //   SQL_create.getExpression();
+    // }
+  }
+
   
   {if(MySQL.state==MySQL.AST)
     System.out.println("============================");}
@@ -417,35 +456,106 @@ void BasicDataTypeDeclaration():
 {}
 {
   
-   ( IdentifierItem() 
-   {
-   
 
-    if(MySQL.state==MySQL.AST)
-    System.out.print(MySQL.token+"   :   ");
+  (IdentifierItem()
 
+          {//打印属性名
+         if(MySQL.state==MySQL.AST){
+           System.out.print(MySQL.token+"   :   ");
+     
+         }
+         if(MySQL.state==MySQL.SDT){
+          System.out.print("语法制导翻译 列名 ： ");
+
+           SQL_create.setColumn_name(MySQL.token.toString());
+           System.out.println(SQL_create.getColumn_name());
+     
+         }
+     
+         if(MySQL.token!=null&&MySQL.state==MySQL.AST){
+           //打印属性类型
+           System.out.println(MySQL.token.next);
+           
+       
+         }
+         if(MySQL.state==MySQL.SDT){
+          System.out.print("语法制导翻译 列类型： ");
+           SQL_create.setColumn_value(MySQL.token.next.toString());
+           System.out.println(SQL_create.getColumn_value());
+         }
+
+         if(MySQL.state==MySQL.SDT){
+          System.out.print("语法制导翻译 加属性 ： ");
+          SQL_create.getExpression();
+        }
+         
+       }
+
+
+      ( (       "CHAR"
+       |   "VARCHAR"
+       |   "VARCHAR2"
+       |   "REAL"
+       |   "FLOAT" 
+   ) [ "(" <SQL_CONSTANT>  ")" ]
+
+   |   "INT"
+   |   "DATE"
+   |   "BINARY_INTEGER"
+   |   "BOOLEAN" )
+  
+  
+  
+  )
+  
+//   ( IdentifierItem()
+//
+//         {//打印属性名
+//          if(MySQL.state==MySQL.AST){
+//            System.out.print(MySQL.token+"   :   ");
+//      
+//          }
+//          if(MySQL.state==MySQL.SDT){
+//            SQL_create.setColumn_name(MySQL.token.toString());
+//      
+//          }
+//      
+//          if(MySQL.token!=null&&MySQL.state==MySQL.AST){
+//            //打印属性类型
+//            System.out.println(MySQL.token.next);
+//            
+//        
+//          }
+//          if(MySQL.state==MySQL.SDT){
+//            SQL_create.setColumn_value(MySQL.token.next.toString());
+//          }
+//          
+//        }
+//
+//
+//
+//
+//    ( (       "CHAR"
+//        |   "VARCHAR"
+//        |   "VARCHAR2"
+//        |   "REAL"
+//        |   "FLOAT" 
+//    ) [ "(" <SQL_CONSTANT>  ")" ]
+//
+//    |   "INT"
+//    |   "DATE"
+//    |   "BINARY_INTEGER"
+//    |   "BOOLEAN" )
+//    )
     
-  }
-  {if(MySQL.token!=null&&MySQL.state==MySQL.AST){
-    System.out.println(MySQL.token.next);
-
-  }}
-
-    ( (       "CHAR"
-        |   "VARCHAR"
-        |   "VARCHAR2"
-        |   "REAL"
-        |   "FLOAT" 
-    ) [ "(" <SQL_CONSTANT>  ")" ]
-
-    |   "INT"
-    |   "DATE"
-    |   "BINARY_INTEGER"
-    |   "BOOLEAN" )
-    )
     // {if(MySQL.token.image!=")")
     //   System.out.println(MySQL.token);
     // }
+
+
+
+    
+
 
 
    
@@ -460,7 +570,12 @@ void CreatDatabase():
   {
     if(MySQL.state==MySQL.AST)
     System.out.println("create A database = "+Token);
+      if(MySQL.state==MySQL.SDT){
+    SQL_create.CreateDatabase(Token.toString());
+    System.out.println("语法制导翻译 = "+SQL_create.getCurrentDatabase());
   }
+  }
+
 }
 
 void ShowStatement():
@@ -539,12 +654,29 @@ void DropTable():
 void USEStatement ():
 {
   Token temp;
-}{
+}
+{
  "USE" temp=IdentifierItem()";"
+
  {
-  if(MySQL.state==MySQL.AST)
-   System.out.println("USEStatement = "+temp);
+  if(MySQL.state==MySQL.AST){
+    System.out.println("USEStatement = "+temp);
+
+  }
+  if(MySQL.state==MySQL.SDT){
+    CurrentDatabase=temp.toString();
+
+  }
+
  }
+//  {
+//   if(MySQL.state==MySQL.AST) { 
+//    System.out.println("USEStatement = "+temp);
+//     }
+//   if(MySQL.state==MySQL.SDT) { 
+//     CurrentDatabase=temp.toString();
+//   }
+//   }
 }
 
 
@@ -562,11 +694,24 @@ void InsertStatement():
   "INSERT" "INTO" 
    temp=IdentifierItem() 
   { if(MySQL.state==MySQL.LEX)
-    System.out.println("INSERT SUCCESS");
+    {
+      System.out.println("INSERT SUCCESS");
+    }
+    
     if(MySQL.state==MySQL.AST)
-    System.out.println("TABLE = "+temp);
+    {
+      System.out.println("TABLE = "+temp);
+    }
+    
+
+    if(MySQL.state==MySQL.SDT){
+
+    }
   }
-  (TableValues()|TableColumns()) ";" 
+  // [TableColumns()]
+  (TableColumns() | TableValues())
+  // TableValues()
+   ";" 
 }
 
 
@@ -838,7 +983,7 @@ void DeleteStatement():
   ";"
   {
     if(MySQL.state==MySQL.LEX)
-    System.out.println("DeleteStatement OVER");
+    System.out.println("DeleteStatement RIGHT");
   }
 
 }
@@ -862,7 +1007,7 @@ void UpdateStatement():
   ";"
   {
     if(MySQL.state==MySQL.LEX)
-    System.out.println("UpdateStatement OVER");
+    System.out.println("UpdateStatement RIGHT");
   }
 
 

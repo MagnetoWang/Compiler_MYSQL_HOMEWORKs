@@ -6,6 +6,7 @@ public class ControlSQL {
 	
 	private Token head ;
 	private Token tail ;
+	private String currentDatabase="";
 	
 	public ControlSQL(Token head,Token tail) {
 		this.head = head ;
@@ -134,5 +135,14 @@ public class ControlSQL {
 			
 		}
 	    }
+	}
+
+	public String getCurrentDatabase() {
+		return currentDatabase;
+	}
+
+	public void setCurrentDatabase(String currentDatabase) {
+		
+		this.currentDatabase = currentDatabase;
 	}
 }
