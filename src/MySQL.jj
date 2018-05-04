@@ -50,6 +50,7 @@ public class MySQL
   public static int SDD=1003;
   public static int SDT=1004;
   public static String CurrentDatabase="";
+  public static String CurrentTable="";
   public static Create SQL_create = new Create();
   public static Drop SQL_drop = new Drop();
   public static Use SQL_use = new Use();
@@ -401,9 +402,12 @@ void TableItem():
       System.out.println(MySQL.token);
 
     }
-    if(MySQL.state==MySQL.SDT){
+    if(MySQL.state==MySQL.SDT&&CurrentDatabase!=""){
+      
+      System.out.println(SQL_create.getCurrentDatabase());
       SQL_create.CreateTable(MySQL.token.toString());
-      System.out.println(SQL_create.getTable());
+      CurrentTable=SQL_create.getTable();
+      // System.out.println(SQL_create.getTable());
 
 
       
@@ -572,6 +576,7 @@ void CreatDatabase():
     System.out.println("create A database = "+Token);
       if(MySQL.state==MySQL.SDT){
     SQL_create.CreateDatabase(Token.toString());
+    CurrentDatabase=SQL_create.getCurrentDatabase();
     System.out.println("语法制导翻译 = "+SQL_create.getCurrentDatabase());
   }
   }
@@ -593,8 +598,20 @@ void ShowDatabases():
 {}{
   "DATABASES" 
   {
-    if(MySQL.state==MySQL.AST)
-    System.out.println("ShowDatabases");
+    if(MySQL.state==MySQL.AST){
+      System.out.println("ShowDatabases");
+    }
+    if(MySQL.state==MySQL.SDT){
+      
+      System.out.println("语法制导翻译 ： ");
+      if(SQL_show.ShowDatabase()==false){
+        System.out.println("打印数据库失败");
+      }
+
+    }
+
+
+
   }
 }
 
@@ -605,8 +622,23 @@ void ShowTables():
 {}{
  "TABLES"
  {
-   if(MySQL.state==MySQL.AST)
-  System.out.println("ShowTables");
+   if(MySQL.state==MySQL.AST){
+    System.out.println("ShowTables");
+
+   }
+  
+
+  if(MySQL.state==MySQL.SDT){
+    SQL_show.setCurrentDatabase(CurrentDatabase);
+    System.out.println("语法制导翻译 ： ");
+    if(SQL_show.ShowTable()==false){
+      System.out.println("打印表失败");
+    }
+
+  }
+
+
+
  }
 }
 
@@ -627,7 +659,15 @@ void DropDatabase():
   "DATABASE" (temp=IdentifierItem())
   {
     if(MySQL.state==MySQL.AST)
-    System.out.println("DropDatabase = "+temp);
+    {
+      System.out.println("DropDatabase = "+temp);
+    }
+    if(MySQL.state==MySQL.SDT){
+      SQL_drop.setCurrentDatabase(CurrentDatabase);
+      SQL_drop.DropDatabase(CurrentDatabase);
+    }
+
+    
   }
 }
 
@@ -642,9 +682,20 @@ void DropTable():
 }{
   "TABLE" (temp=IdentifierItem())
   {
-    if(MySQL.state==MySQL.AST)
-    System.out.println("DropTable = "+temp);
+    if(MySQL.state==MySQL.AST){
+      System.out.println("DropTable = "+temp);
+    }
+    
+
+
+
+    if(MySQL.state==MySQL.SDT){
+      SQL_drop.setCurrentDatabase(CurrentDatabase);
+      SQL_drop.DropTable(CurrentTable);
+    }
+
   }
+  
 }
 
 
@@ -664,6 +715,7 @@ void USEStatement ():
 
   }
   if(MySQL.state==MySQL.SDT){
+
     CurrentDatabase=temp.toString();
 
   }
@@ -704,7 +756,24 @@ void InsertStatement():
     }
     
 
-    if(MySQL.state==MySQL.SDT){
+    if(MySQL.state==MySQL.SDT&&CurrentDatabase!=""){
+      System.out.println("语法制导翻译：");
+      SQL_insert.setCurrentDatabase(CurrentDatabase);
+      if(SQL_insert.CheckTable(temp.toString())==false){
+        System.out.println("进入错误数据表");
+        return;
+
+      }
+      CurrentTable=temp.toString();
+      SQL_insert.setCurrentTable(CurrentTable);
+      try {
+        SQL_insert.Init();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
+
 
     }
   }
@@ -723,6 +792,27 @@ void TableValues():
   "("
    TableValue() ("," TableValue())*
   ")"
+
+  {
+//有列表插入列表，没有列表直接插入值。分开来考虑会更清楚
+    if(MySQL.state==MySQL.SDT)
+    {
+      
+      try {
+        if(SQL_insert.DirectInsertValue(CurrentTable)==true){
+            System.out.println("插入数值成功");
+          }
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
+
+    }
+
+
+
+  }
 }
 
 void TableValue():
@@ -733,7 +823,22 @@ void TableValue():
     temp=IdentifierItem()
     {
       if(MySQL.state==MySQL.AST)
-      System.out.println("TABLEVALUE = "+temp);
+      {
+        System.out.println("TABLEVALUE = "+temp);
+
+      }
+      
+
+      if(MySQL.state==MySQL.SDT)
+      {
+        System.out.println("TABLEVALUE = "+temp);
+        SQL_insert.getValue_columm().add(temp.toString());
+
+      }
+
+
+
+
     }
     
     // <SingleQuotes> <SQL_IDENTIFIER> <SingleQuotes>
@@ -763,8 +868,14 @@ void TableColumn():
   temp=IdentifierItem()
   {
 
-    if(MySQL.state==MySQL.AST)
-    System.out.println("TABLENAME = "+temp);
+    if(MySQL.state==MySQL.AST){
+      System.out.println("TABLECOLUMN = "+temp);
+    }
+    
+
+
+
+
    }
 }
 

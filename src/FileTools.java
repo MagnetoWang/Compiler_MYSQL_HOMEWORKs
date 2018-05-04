@@ -15,6 +15,36 @@ public class FileTools {
 	public File   SQL_Folder;
 	public File   SQL_File;
 	public boolean SQL_bool=false;
+		/**
+	 * @param path 传入的是路径名,不带后缀类型
+	 * 
+	 * */
+	public boolean OpenFile(String path){
+		if(path==null){
+			System.out.println("ERROR:无效路径");
+			return false;
+		}
+		
+		
+
+		return true;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	/**
 	 * @param path 传入的是路径名,不带后缀类型
@@ -224,7 +254,7 @@ public class FileTools {
 		} catch (Exception e) {
 			// TODO: handle exception
 		}finally {
-			assertEquals(true, SQL_bool);
+//			assertEquals(true, SQL_bool);
 			SQL_bool=false;
 		}
 	}
@@ -251,5 +281,6 @@ public class FileTools {
 			SQL_bool=false;
 		}
 	}
+
 	
 }

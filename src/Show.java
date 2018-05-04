@@ -45,6 +45,26 @@ public class Show {
 		
 		return true;
 	}
+	public boolean ShowTable() {
+		//		File DatabasesList=new File(getCurrentPath());
+				if(getCurrentDatabase()==""){
+					System.out.println("没有指定有效数据库。");
+					return false;
+				}
+				String[] files=fileOperation.getAllFiles(getCurrentPath()+"/"+getCurrentDatabase());
+				
+				for(String e : files){
+					System.out.println(e);
+				}
+				return true;
+			}
+			
+
+
+
+
+
+
 	@Ignore
 	@Test
 	public void TestShowDatabase() {
@@ -55,20 +75,7 @@ public class Show {
 	}
 	
 	
-	public boolean ShowTable() {
-//		File DatabasesList=new File(getCurrentPath());
-		if(getCurrentDatabase()==""){
-			System.out.println("没有指定有效数据库。");
-			return false;
-		}
-		String[] files=fileOperation.getAllFiles(getCurrentPath()+"/"+getCurrentDatabase());
-		
-		for(String e : files){
-			System.out.println(e);
-		}
-		return true;
-	}
-	
+
 	@Test
 	public void TestShowTable() {
 //		File DatabasesList=new File(getCurrentPath());

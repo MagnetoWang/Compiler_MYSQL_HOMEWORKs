@@ -63,6 +63,16 @@ public class Create {
 
 	
 	public void WriteTable() throws IOException{
+		if(getCurrentDatabase()==""){
+			System.out.println("请先创建数据库");
+			System.out.println("写表失败");
+			return;
+		}
+		if(getTable()==""){
+			
+			System.out.println("写表失败");
+			return;
+		}
 		String table=getTable();
 		table=table+".csv";
 		CsvWriter cw = new CsvWriter(getCurrentPath()+"/"+getCurrentDatabase()+"/"+table,',', Charset.forName("gb2312"));
@@ -85,6 +95,7 @@ public class Create {
 		cw.endRecord();
 		//一定要把文件关闭。否则没有办法写入数据
 		cw.close();
+		table_column = new HashMap<>();
 	}
 	
 	
