@@ -15,6 +15,30 @@ public class FileTools {
 	public File   SQL_Folder;
 	public File   SQL_File;
 	public boolean SQL_bool=false;
+	
+	public boolean CheckTable(String path){
+		if(path==""||path==null){
+			System.out.println("无效文件路径");
+			return false;
+		}
+		
+		String[] files = getAllFiles(path);
+		path=path+".csv";
+		for(String e : files){
+			if(e.equals(path)){
+				return true;
+			}
+		}
+		
+		System.out.println("当前文件夹中，没有这个文件");
+		System.out.println("无效文件路径"+path);
+		return false;
+	}
+	
+	
+	
+	
+	
 		/**
 	 * @param path 传入的是路径名,不带后缀类型
 	 * 
@@ -29,6 +53,8 @@ public class FileTools {
 
 		return true;
 	}
+	
+
 
 
 

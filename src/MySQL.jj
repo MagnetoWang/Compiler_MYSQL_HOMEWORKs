@@ -767,6 +767,7 @@ void InsertStatement():
       CurrentTable=temp.toString();
       SQL_insert.setCurrentTable(CurrentTable);
       try {
+        //不管是value还是column都提前初始化
         SQL_insert.Init();
       } catch (IOException e) {
         // TODO Auto-generated catch block
@@ -777,6 +778,34 @@ void InsertStatement():
 
     }
   }
+
+  {
+    if(MySQL.state==MySQL.SDT){
+      try{
+        if(SQL_insert.CheckColumn(CurrentTable)==false){
+          System.out.println("无效字段或者类型");
+          return;
+        }
+
+      }catch (IOException e){
+        e.printStackTrace();
+
+      }
+
+      SQL_insert.setOperationColumn(true);
+
+
+
+
+
+    }
+  }
+
+
+
+
+
+
   // [TableColumns()]
   (TableColumns() | TableValues())
   // TableValues()
@@ -797,15 +826,22 @@ void TableValues():
 //有列表插入列表，没有列表直接插入值。分开来考虑会更清楚
     if(MySQL.state==MySQL.SDT)
     {
-      
-      try {
-        if(SQL_insert.DirectInsertValue(CurrentTable)==true){
-            System.out.println("插入数值成功");
-          }
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+      if(SQL_insert.isOperationColumn()==true&&SQL_insert.isWithColumn()==false){
+
+
+        try {
+          if(SQL_insert.DirectInsertValue(CurrentTable)==true){
+              System.out.println("插入数值成功");
+            }
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+
       }
+
+      
+
 
 
     }
@@ -853,10 +889,46 @@ void TableColumns():
 {
   Token temp;
 }{
+
+
+
    "("
    TableColumn()("," TableColumn())*
    ")"
+
+   {
+    SQL_insert.setWithColumn(true);
+
+   }
+
+
    TableValues()
+
+   {
+    if(MySQL.state==MySQL.SDT&&SQL_insert.isOperationColumn()==true){
+      try{
+        if(SQL_insert.InsertValueWithColumn(SQL_insert.getCurrentTable())==true){
+          System.out.println("列表和数据插入成功");
+        }else{
+          System.out.println("列表和数据插入失败");
+  
+        }
+
+      }catch (IOException e){
+        e.printStackTrace();
+
+      }
+      
+
+
+
+    }
+
+
+
+   }
+
+
 
 
 }
@@ -870,6 +942,25 @@ void TableColumn():
 
     if(MySQL.state==MySQL.AST){
       System.out.println("TABLECOLUMN = "+temp);
+    }
+
+    if(MySQL.state==MySQL.SDT){
+      try {
+        if(SQL_insert.CheckColumn(CurrentTable)==false){
+          System.out.println("无效字段或者类型");
+          return;
+        }
+        
+      } catch (Exception e) {
+        e.printStackTrace();
+        
+      }
+
+
+      SQL_insert.getTable_column().add(temp.toString());
+
+
+
     }
     
 

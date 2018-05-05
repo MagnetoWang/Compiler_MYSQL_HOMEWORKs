@@ -24,6 +24,10 @@ public class SQL_CSVTOOLS {
 	private static int DataColumn=0;
 	
 	
+	
+
+	
+	
 	public boolean IfHasColunm(String path) throws IOException{
 		if(path==null||path==""){
 			System.out.println("输入无效的表格名称");
@@ -39,7 +43,9 @@ public class SQL_CSVTOOLS {
 		boolean result = false;
 		// 读头操作
 		result = cr.readHeaders();
-		return result;
+		boolean type=cr.readRecord();
+		cr.close();
+		return (result&&type);
 		
 	}
 	
@@ -93,11 +99,12 @@ public class SQL_CSVTOOLS {
 		
 
 		// 读数据操作
+//		System.out.println("");
 		while (cr.readRecord()) {
 			raw = new String[readHeader.length];
 			i = 0;
 			for (String e : readHeader) {
-				System.out.print(cr.get(e) + "  ");
+//				System.out.print(cr.get(e) + "  ");
 				raw[i] = cr.get(e);
 				i++;
 			}
@@ -254,7 +261,7 @@ public class SQL_CSVTOOLS {
 			
 //			CsvWriter cw = new CsvWriter(path);
 
-			
+			System.out.println("插入值 ： "+OneLine);
 			data.add(OneLine);
 //			setData(data);
 			

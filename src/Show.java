@@ -75,7 +75,7 @@ public class Show {
 	}
 	
 	
-
+	@Ignore
 	@Test
 	public void TestShowTable() {
 //		File DatabasesList=new File(getCurrentPath());

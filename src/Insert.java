@@ -24,6 +24,11 @@ public class Insert {
 	private  LinkedList<String> Value_columm=new LinkedList<>();
 	private static String[] OneLine;
 
+	//false 默认未初始化列表
+	private static boolean OperationColumn = false;
+	//false 默认SQL语句无列表
+	private static boolean WithColumn =false;
+
 	private static String currentPath="src/mysql";
 	private static String currentDatabase="";
 	private static String currentTable="";
@@ -31,11 +36,17 @@ public class Insert {
 	public static FileTools fileOperation = new FileTools();
 	public static SQL_CSVTOOLS csvtools = new SQL_CSVTOOLS();
 	
-	
+	/**
+	 * 
+	 * 初始化为了保证上一次的语句不影响下一次。比如当前路径，还有些布尔值
+	 * 
+	 * */
 	public boolean Init() throws IOException{
 
 		Value_columm=new LinkedList<>();
 		Table_column=new LinkedList<>();
+		setWithColumn(false);
+		setOperationColumn(false);
 		csvtools.setCurrentDatabase(currentDatabase);
 		csvtools.setCurrentTable(currentTable);
 		csvtools.ReadAll(currentTable);
@@ -45,7 +56,11 @@ public class Insert {
 	}
 	
 
-
+	/**
+	 * 这个方法可以作为基础工具
+	 * @param path
+	 * @return 
+	 */
 	public boolean CheckTable(String path){
 		if(path==""||path==null){
 			System.out.println("无效数据表");
@@ -62,6 +77,114 @@ public class Insert {
 		System.out.println("当前数据库，没有这个数据表");
 		return false;
 	}
+	
+	/**
+	 * ture 表示有初始化的列表
+	 * false 表示无初始化的列表
+	 * 
+	 */
+	public boolean CheckColumn(String path) throws IOException{
+		if(path==""||path==null){
+			System.out.println("无效数据表");
+			return false;
+		}
+//		path=currentPath+"/"+currentDatabase+"/"+path+".csv";
+		
+		
+		return csvtools.IfHasColunm(path);
+		
+	}
+	/**
+	 * 
+	 * 按列表顺序插入
+	 * 若未初始化列表，那么退出。列表必须先初始化，才能执行插入操作
+	 * @throws IOException 
+	 */
+	public boolean InsertValueWithColumn(String path) throws IOException{
+		if(path==""||path==null){
+			System.out.println("无效数据表");
+			return false;
+		}
+		if(isOperationColumn()==true){
+			return InsertValueBYColumn(path);
+
+
+		}else{
+			System.out.println("列表字段未初始，请先初始化");
+			return false;
+
+		}
+	}
+	/**
+	 * 
+	 * @throws IOException 
+	 * @todo 根据给出的列表顺序插入数据
+	 */
+	public boolean InsertValueBYColumn(String path) throws IOException{
+
+		LinkedList<String> Table_column = getTable_column();
+		LinkedList<String> Value_columm = getValue_columm();
+		if(Table_column.size()!=Value_columm.size()){
+			System.out.println("列表和值参数数量不一致");
+			return false;
+		}
+		
+		List<String[]> data = csvtools.getData();
+		HashMap<String, Integer> HeaderKey = new HashMap<>();
+		String[] Header = data.get(0);
+		int i=0;
+		for( String e : Header){
+			HeaderKey.put(e, i);
+			i++;
+		}
+		
+		@SuppressWarnings("unused")
+		String[] ValueType = data.get(1);
+		//应该赋值和对应输入一样大小。而不能和表的字段属性一样大
+//		String[] TempColumn =new String[Table_column.size()];
+//		String[] TempValue = new String[Value_columm.size()];
+		//不能随便改。或者改的时候要影响最小
+//		String[] TempColumn=new String[Header.length];
+//		String[] TempValue=new String[Header.length];
+		String[] OneLine=new String[Header.length];
+//		if(ListTransferOneLine(Table_column)==true){
+//			i=0;
+//			for( String e : getOneLine()){
+//				TempColumn[i] = e;
+//				i++;
+//			}
+//			
+//			
+//		}
+//		if(ListTransferOneLine(Value_columm)==true){
+//			i=0;
+//			for( String e : getOneLine()){
+//				TempValue[i] =e;
+//				i++;
+//			}
+//		}
+		
+		for(i=0;i<OneLine.length;i++){
+			OneLine[i]="nulls";
+		}
+		i=0;
+		//这里有个bug 因为设计到null值。所以额外处理
+		for(String e : Table_column){
+			if(i<Table_column.size()){
+				int index = HeaderKey.get(e);
+				OneLine[index]=Value_columm.get(i);
+				i++;
+				
+			}
+
+		}
+		
+
+
+		return csvtools.InsertValue(path, OneLine);
+
+	}
+
 	
 	/**
 	 * 
@@ -89,7 +212,7 @@ public class Insert {
 			oneLine[i]="null";
 		}
 		setOneLine(oneLine);
-		return false;
+		return true;
 	}
 
 	public boolean DirectInsertValue(String path) throws IOException{
@@ -110,7 +233,7 @@ public class Insert {
 			return false;
 		}
 		ListTransferOneLine(getValue_columm());
-		String[] oneLine =getOneLine();
+//		String[] oneLine =getOneLine();
 	    
 		
 //		path=currentPath+"/"+currentDatabase+"/"+path+".csv";
@@ -118,18 +241,7 @@ public class Insert {
 		return csvtools.InsertValue(path, getOneLine());
 
 	}
-	public boolean WriteValue(String path) throws IOException{
-		
-		return true;
-		
-		
-	}
 
-	public boolean InsertColumn(String path){
-
-
-		return false;
-	}
 	
 	
 	@Test
@@ -144,7 +256,7 @@ public class Insert {
 			System.out.println(cr.readRecord());
 			System.out.println(cr.getColumnCount());
 			for(int i=0;i<cr.getColumnCount();i++){
-				String ans = cr.get(i);
+//				String ans = cr.get(i);
 //				System.out.println(ans);
 //				System.out.println(cr.get("SNAME"));
 //				System.out.println(cr.getHeader(i));
@@ -193,6 +305,7 @@ public class Insert {
 	public void TestWriteValue() throws IOException{
 		String path="src/mysql/JUST_FOR_TEST/STUDENT.csv";
 		CsvReader cr = new CsvReader(path);
+		cr.close();
 		
 		
 		CsvWriter cw = new CsvWriter(path);
@@ -209,7 +322,7 @@ public class Insert {
 		
 		System.out.println("OK");
 		for(int i=0;i<3;i++){
-//			cw.writeRecord(bns);
+			cw.writeRecord(bns);
 			cw.write("ok");
 		}
 //		cw.endRecord();
@@ -237,6 +350,7 @@ public class Insert {
 	
 	
 	
+	@SuppressWarnings("static-access")
 	public void setCurrentPath(String currentPath) {
 		this.currentPath = currentPath;
 	}
@@ -296,6 +410,30 @@ public class Insert {
 
 	public void setOneLine(String[] oneLine) {
 		OneLine = oneLine;
+	}
+
+
+
+	public static boolean isOperationColumn() {
+		return OperationColumn;
+	}
+
+
+
+	public static void setOperationColumn(boolean operationColumn) {
+		OperationColumn = operationColumn;
+	}
+
+
+
+	public static boolean isWithColumn() {
+		return WithColumn;
+	}
+
+
+
+	public static void setWithColumn(boolean withColumn) {
+		WithColumn = withColumn;
 	}
 
 }
