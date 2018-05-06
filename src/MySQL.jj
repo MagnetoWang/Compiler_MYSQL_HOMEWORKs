@@ -57,6 +57,9 @@ public class MySQL
   public static Show SQL_show = new Show();
   public static Insert SQL_insert = new Insert();
 
+  //在调用的时候需要静态，因为是在main函数
+  public static Select SQL_select ;//= new Select();
+
   public static void main(String args []) throws ParseException
   {
      
@@ -999,11 +1002,37 @@ void SelectStatement():
 {}
 {
   "SELECT" ["ALL"|"DISTINCT"|"DISTINCTROW"|"TOP"]
+  {
+
+    if(MySQL.state==MySQL.SDT){
+      SQL_select = new Select();
+      SQL_select.setCurrentDatabase(CurrentDatabase);
+      
+
+    }
+
+  }
+
+
+
    SelectBaseStatement()
    ";"
    {
-    if(MySQL.state==MySQL.LEX)
-    System.out.println(" SELECT SUCCESS");
+
+
+
+    if(MySQL.state==MySQL.LEX){
+      System.out.println(" SELECT SUCCESS");
+
+    }
+    
+    if(MySQL.state==MySQL.SDT){
+      System.out.println(" SELECT SUCCESS");
+
+    }
+
+
+
   }
 
 
@@ -1020,7 +1049,35 @@ void SelectBaseStatement():
 //  [ WhereStatement() ]
 //  [ GroupByStatement() ]
 // 
-//
+//  
+
+  {
+    if(MySQL.state==MySQL.SDT){
+      if(SQL_select.isIsWhere()==true){
+        //先执行result,然后打印
+      }else{
+        if(SQL_select.isIsStart()==true){
+          //全部打印,按照指定表
+          System.out.println("* without where");
+          try {
+            SQL_select.PrintStarWithSingleTableWithoutWhere();
+          } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+
+
+
+        }else{
+          //按照指定列，和表来打印数据
+        }
+      }
+
+    }
+
+
+
+  }
 
 
   
@@ -1035,7 +1092,9 @@ void TableList():
 //  IdentifierItem()("," IdentifierItem())*
 //  TableItem()//("," TableItem())*
   SelectTableItem()("," SelectTableItem())*
-    {
+  {
+
+
     // System.out.println(" selectBase ");
   }
 
@@ -1051,21 +1110,53 @@ void TableList():
 void SelectTableItem():
 {Token temp;}
 {
-  temp=IdentifierItem() { 
-  if(MySQL.state==MySQL.AST){
-    System.out.println("TableName = "+temp);
-  } }
+  temp=IdentifierItem()
+   { 
+    if(MySQL.state==MySQL.AST){
+       System.out.println("TableName = "+temp);
+    }
+
+
+    if(MySQL.state==MySQL.SDT){
+      System.out.println("TableName = "+temp);
+      SQL_select.getTableName().add(temp.toString());
+
+    }
+
+
+
+
+
+   }
 }
 
 //列名 单独处理
 void SelectList():
 {Token temp;}
 {
-    (("*" ){
+    (("*" )
+    {
+
       if(MySQL.state==MySQL.AST){
         System.out.println("Columnse = ALL");
       }
-    })| (SelectItem() ("," SelectItem())*)
+
+
+      if(MySQL.state==MySQL.SDT){
+        
+      
+      SQL_select.setIsStart(true);
+    
+        
+      }
+
+
+
+
+    }      )
+
+    | 
+    (SelectItem() ("," SelectItem())*)
 }
 
 void SelectItem():
@@ -1076,6 +1167,16 @@ void SelectItem():
   {  
     if(MySQL.state==MySQL.AST){
       System.out.println("ColumnsName = "+temp);
+    }
+
+    if(MySQL.state==MySQL.SDT){
+      System.out.println("ColumnsName = "+temp);
+      if(SQL_select.isIsStart()==false){
+        SQL_select.getShowColumn().add(temp.toString());
+
+      }
+
+
     }
   
   }
@@ -1091,10 +1192,20 @@ void WhereStatement():
 {}
 {
   "WHERE"
+
+  {
+    if(MySQL.state==MySQL.SDT){
+      SQL_select.setIsWhere(true);
+      }
+
+  }
   
   SQLCondition()(SQLCondition())*
   {
-    // System.out.println("where OVER");
+    if(MySQL.state==MySQL.SDT){
+      System.out.println("开始批量执行OR操作");
+      SQL_select.columnTools.OperationOr();
+      }
   }
 
   
@@ -1114,10 +1225,40 @@ void SQLCondition():
   
   (
    SQLLogicalExpression() 
-  | "AND" SQLLogicalExpression()
-  | "OR" SQLLogicalExpression()
+   ( "AND"
+   {
+    if(MySQL.state==MySQL.AST){
+      System.out.println("AND");
+      }
+
+      if(MySQL.state==MySQL.SDT){
+        SQL_select.columnTools.Operation.add("AND");
+        }
+
+   }
+   
+   SQLLogicalExpression())*
+
+
+   ( "OR"
+   {
+    if(MySQL.state==MySQL.AST){
+      System.out.println("OR");
+      }
+
+      if(MySQL.state==MySQL.SDT){
+        SQL_select.columnTools.Operation.add("OR");
+      }
+
+
+
+   }
+   
+   SQLLogicalExpression())*
 
   )
+
+
   
 //  ( ")" )*
 }
@@ -1141,6 +1282,31 @@ void SQLLogicalExpression():
       System.out.println("LOGICAL = "+temp2);
       System.out.println("RIGHT = "+temp3);
     }
+
+    if(MySQL.state==MySQL.SDT){
+      System.out.println("LEFT = "+temp1);
+      System.out.println("LOGICAL = "+temp2);
+      System.out.println("RIGHT = "+temp3);
+
+
+      if(SQL_select.columnTools.Operation.get(SQL_select.columnTools.Operation.size()-1)=="AND"){
+        System.out.println("and 操作");
+        SQL_select.columnTools.OperationAnd(temp1.toString(),temp2.toString(),temp3.toString());
+
+		
+        SQL_select.columnTools.Operation.remove(SQL_select.columnTools.Operation.size()-1);
+      }else{
+
+        SQL_select.columnTools.getColumnName().add(temp1.toString());
+        SQL_select.columnTools.getCompareTo().add(temp2.toString());
+        SQL_select.columnTools.getColumnValue().add(temp3.toString());
+      }
+
+    }
+
+
+
+
   }
 
 }

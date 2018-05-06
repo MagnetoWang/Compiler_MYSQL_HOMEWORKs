@@ -51,6 +51,9 @@ public class SQL_CSVTOOLS {
 	
 
 	/**
+	 * 
+	 * 只需要输入文件名称
+	 * 默认是CSV格式
 	 * 读取指定文件的全部内容
 	 * 
 	 * */
