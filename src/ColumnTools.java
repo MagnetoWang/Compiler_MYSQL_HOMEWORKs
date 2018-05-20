@@ -51,13 +51,11 @@ public class ColumnTools {
 			Header.put(e, data.get(1)[i]);
 			i++;
 		}
-
-		
-		
 		return true;
 		
 		
 	}
+	
 	
 
 
@@ -91,6 +89,7 @@ public class ColumnTools {
 		
 		
 	}
+	
 
 
 
