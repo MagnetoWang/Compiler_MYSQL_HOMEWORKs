@@ -1,8 +1,12 @@
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
+
+import sun.security.util.Cache.EqualByteArray;
 
 /**
  * @author Magneto_Wang
@@ -25,7 +29,7 @@ public class ColumnTools {
 	
 	private List<String[]> data;
 	private HashMap<String, String> Header = new HashMap<>();
-	
+	private HashMap<String, Integer> HeaderColumn = new HashMap<>();
 	
 
 
@@ -52,13 +56,44 @@ public class ColumnTools {
 			Header.put(e, data.get(1)[i]);
 			i++;
 		}
+		i=0;
+		for(String e : data.get(0)){
+			HeaderColumn.put(e, i);	
+			i++;
+		}
 		return true;
 		
 		
 	}
 	
-	
+	public List<Integer[]> whereStatement(){
+		
+		LogicalExpression();
+		ExecAnd_Or();
+		 return Result;
+	}
+	public void ExecAnd_Or(){
+		List<String[]> data =getData();
+		List<Integer[]>  result =getResult();
+		List<String> newOperation =new LinkedList<>();
+		for(int i=0;i<Operation.size();i++){
+			if(Operation.get(i).equals("AND")==true){
+				OperationAnd(i,i+1);
+				
+			}
+//			if(Operation.get(i).equals("OR")==true){
+//				newOperation.add("OR");	
+//			}
 
+		}
+		for(int i=0;i<Operation.size();i++){
+			if(Operation.get(i).equals("OR")==true){
+				OperationOr(i,i+1);
+				
+			}
+
+		}
+	}
 
 	
 	/**
@@ -87,37 +122,207 @@ public class ColumnTools {
 			TransferOneLine[i] = Integer.parseInt(e);
 		}
 		return TransferOneLine;
-		
-		
 	}
-	
-
-
-
-
-
 	/**
 	 * 
+	 * @param OneLine
+	 * @see List<Integer> 转化 Integer[] 工具
+	 * @return
+	 */
+	public Integer[] ListArrayToIntArray(List<Integer> OneLine){
+		Integer[] TransferOneLine = new Integer[OneLine.size()];
+		
+		for(int i=0;i<OneLine.size();i++){
+			TransferOneLine[i]=OneLine.get(i);
+		}
+		return TransferOneLine;
+	}
+
+
+
+
+
+
+	public String Equal="=";
+	public String Unequal ="!=";
+	public String More=">";
+	public String MoreThan=">=";
+	public String Less="<";
+	public String LessThan="<=";
+	/**
+	 * @see 集中处理所有表达式的结果
+	 * 目前没有实现逻辑表达式运算，数据类型分类。只是完成了字符串的比较
 	 * 
-	 *  读取表达式的函数
+	 * @读取表达式的函数
 	 *  ( "=" | "!="  | "<>" | ">" | ">=" | "<" | "<=")
 	 * 
 	 */
 	public boolean LogicalExpression(){
+		if(CompareTo.size()!=ColumnName.size()
+				||ColumnName.size()!=ColumnValue.size()
+				||CompareTo.size()!=ColumnValue.size()){
+			return false;
+		}
+		int i=0;
+		for(String e : CompareTo){
+			String name=ColumnName.get(i);
+			String value=ColumnValue.get(i);
+			i++;
+			if(e.equals(Equal)==true){
+				ExecEqual(name,value);
+			}
+			if(e.equals(Unequal)==true){
+				ExecUnequal(name, value);
+			}
+			if(e.equals(More)==true){
+				ExecMore(name, value);
+			}
+			if(e.equals(MoreThan)==true){
+				ExecMoreThan(name, value);
+			}
+			if(e.equals(Less)==true){
+				ExecLess(name, value);
+			}
+			if(e.equals(LessThan)==true){
+				ExecLessThan(name, value);
+			}
+		}
 		
 
 
 		return true;
 	}
-
-
-
-	public boolean OperationAnd(String ColumnName,String CompareTo,String Value){
-
+	public boolean ExecEqual(String name,String value){
+		if(name==null||value==null){
+			return false;
+		}
+		List<String[]> data =getData();
+		int index = HeaderColumn.get(name);
+		List<Integer> ResultLine=new LinkedList<>();
+		for(int i=2;i<data.size();i++){
+			if(data.get(i)[index].equals(value)==true){
+				ResultLine.add(i);
+			}
+		}
+		Result.add(ListArrayToIntArray(ResultLine)) ;
 		return true;
+		
+	}
+	public boolean ExecUnequal(String name,String value){
+		if(name==null||value==null){
+			return false;
+		}
+		List<String[]> data =getData();
+		int index = HeaderColumn.get(name);
+		List<Integer> ResultLine=new LinkedList<>();
+		for(int i=2;i<data.size();i++){
+			if(data.get(i)[index].equals(value)==false){
+				ResultLine.add(i);
+			}
+		}
+		Result.add(ListArrayToIntArray(ResultLine)) ;
+		return true;
+		
+	}
+	public boolean ExecMore(String name,String value){
+		if(name==null||value==null){
+			return false;
+		}
+		List<String[]> data =getData();
+		int index = HeaderColumn.get(name);
+		List<Integer> ResultLine=new LinkedList<>();
+		for(int i=2;i<data.size();i++){
+			if(data.get(i)[index].compareTo(value)>0){
+				ResultLine.add(i);
+			}
+		}
+		Result.add(ListArrayToIntArray(ResultLine)) ;
+		return true;
+		
+	}
+	public boolean ExecMoreThan(String name,String value){
+		if(name==null||value==null){
+			return false;
+		}
+		List<String[]> data =getData();
+		int index = HeaderColumn.get(name);
+		List<Integer> ResultLine=new LinkedList<>();
+		for(int i=2;i<data.size();i++){
+			if(data.get(i)[index].compareTo(value)>=0){
+				ResultLine.add(i);
+			}
+		}
+		Result.add(ListArrayToIntArray(ResultLine)) ;
+		return true;
+		
+	}	
+	public boolean ExecLess(String name,String value){
+		if(name==null||value==null){
+			return false;
+		}
+		List<String[]> data =getData();
+		int index = HeaderColumn.get(name);
+		List<Integer> ResultLine=new LinkedList<>();
+		for(int i=2;i<data.size();i++){
+			if(data.get(i)[index].compareTo(value)<0){
+				ResultLine.add(i);
+			}
+		}
+		Result.add(ListArrayToIntArray(ResultLine)) ;
+		return true;
+		
+	}
+	public boolean ExecLessThan(String name,String value){
+		if(name==null||value==null){
+			return false;
+		}
+		List<String[]> data =getData();
+		int index = HeaderColumn.get(name);
+		List<Integer> ResultLine=new LinkedList<>();
+		for(int i=2;i<data.size();i++){
+			if(data.get(i)[index].compareTo(value)<=0){
+				ResultLine.add(i);
+			}
+		}
+		Result.add(ListArrayToIntArray(ResultLine)) ;
+		return true;
+		
 	}
 
-	public boolean OperationOr(){
+	public boolean OperationAnd(int front, int behind){
+		Integer[] Frontresult =Result.get(front);
+		Integer[] Behindresult =Result.get(behind);
+//		Set<Integer> FrontSet=IntegerArrayToSet(Frontresult);
+//		Set<Integer> BehindSet=IntegerArrayToSet(Behindresult);
+		Set<Integer> setAll = new HashSet<>();
+		for(Integer e : Frontresult){
+			setAll.add(e);
+		}
+		for(Integer e : Behindresult){
+			setAll.add(e);
+		}
+		Integer[] result=new Integer[setAll.size()];
+		int i=0;
+		for(Integer e: setAll){
+			result[i]=e;
+			i++;
+		}
+		Result.set(front,	 result);
+		Result.set(behind,	 result);
+		
+		
+		return true;
+	}
+	
+	public Set<Integer> IntegerArrayToSet(Integer[] intArray){
+		Set<Integer> setInteger = new HashSet<>();
+		for(Integer e : intArray){
+			setInteger.add(e);
+		}
+		return setInteger;
+	}
+
+	public boolean OperationOr(int front, int behind){
 
 		return true;
 	}
@@ -163,8 +368,8 @@ public class ColumnTools {
 
 
 	/*
-	 * 传入一行数据,和列名
-	 * 打印一行数据包括列名
+	 * @return  传入一行数据,和列名
+	 *  打印一行数据包括列名
 	 * 
 	 */
 	public void printRaw(String[] OneLine,String[] ColumnName){
@@ -361,6 +566,14 @@ public class ColumnTools {
 
 	public void setShowColumn(List<String> showColumn) {
 		ShowColumn = showColumn;
+	}
+
+	public HashMap<String, Integer> getHeaderColumn() {
+		return HeaderColumn;
+	}
+
+	public void setHeaderColumn(HashMap<String, Integer> headerColumn) {
+		HeaderColumn = headerColumn;
 	}
 	
 

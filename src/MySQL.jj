@@ -1061,7 +1061,13 @@ void SelectBaseStatement():
   {
     if(MySQL.state==MySQL.SDT){
       if(SQL_select.isIsWhere()==true){
-        //先执行result,然后打印
+        // TODO 先执行result,然后打印
+        SQL_select.PrintWhere();
+
+
+
+
+        
       }else{
         if(SQL_select.isIsStart()==true){
           //全部打印,按照指定表
@@ -1078,7 +1084,7 @@ void SelectBaseStatement():
         }else{
           // TODO 按照指定列，和表来打印数据
           if(SQL_select.isIsWhere()==true){
-            // TODO 1有where的情况，先选择符合条件的行
+            // TODO 在这一行是错误逻辑：有where的情况，先选择符合条件的行
           }else{
             // TODO 无where,按指定列打印
             try{
@@ -1310,18 +1316,22 @@ void SQLLogicalExpression():
       System.out.println("RIGHT = "+temp3);
 
 
-      if(SQL_select.columnTools.Operation.get(SQL_select.columnTools.Operation.size()-1)=="AND"){
-        System.out.println("and 操作");
-        SQL_select.columnTools.OperationAnd(temp1.toString(),temp2.toString(),temp3.toString());
+      SQL_select.columnTools.getColumnName().add(temp1.toString());
+      SQL_select.columnTools.getCompareTo().add(temp2.toString());
+      SQL_select.columnTools.getColumnValue().add(temp3.toString());
+
+
+
+      // if(SQL_select.columnTools.Operation.get(SQL_select.columnTools.Operation.size()-1)=="AND"){
+      //   System.out.println("and 操作");
+      //   // SQL_select.columnTools.Operation.add
+      //   //SQL_select.columnTools.OperationAnd(temp1.toString(),temp2.toString(),temp3.toString());
 
 		
-        SQL_select.columnTools.Operation.remove(SQL_select.columnTools.Operation.size()-1);
-      }else{
+      //   //SQL_select.columnTools.Operation.remove(SQL_select.columnTools.Operation.size()-1);
+      // }else{
 
-        SQL_select.columnTools.getColumnName().add(temp1.toString());
-        SQL_select.columnTools.getCompareTo().add(temp2.toString());
-        SQL_select.columnTools.getColumnValue().add(temp3.toString());
-      }
+      // }
 
     }
 

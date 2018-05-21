@@ -5,10 +5,11 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.sun.jndi.toolkit.ctx.StringHeadTail;
-import com.sun.org.apache.xml.internal.security.Init;
 
-/*
+
+/**
+ * @
+ * @see 
  * 因为select的功能过于复杂。为了以后可扩展行。这次是先设计对象，然后再来写代码
  * 这次相比之前应该说，代码更加稳健和成熟
  * 首先，采用非静态的类。每次执行select语句都是重新new
@@ -43,16 +44,25 @@ public class Select {
 	
 	
 	
-	public boolean Init(){
+	public boolean Init() throws IOException{
+		if(CheakPath(getCurrentPath())==false){
+			System.out.println("路径错误");
+			return false;
+		}
 		csvtools.setCurrentDatabase(currentDatabase);
 		csvtools.setCurrentTable(currentTable);
 		columnTools.setCurrentDatabase(currentDatabase);
 		columnTools.setCurrentTable(currentTable);
+		csvtools.ReadAll(currentTable);
+		setData(csvtools.getData());
+		columnTools.setData(data);
+		columnTools.Init();
 		
 		return true;
 	}
 	
-	/*
+	/**
+	 * @see
 	 * 在之前的设计中一直没有专门写一个完整检查机制
 	 * 现在结合之前零零散散的检查，整合起来
 	 * 后续如果完全更新，可以加入基本工具操作中
@@ -76,11 +86,15 @@ public class Select {
 		return false;
 		
 	}
-	/*
-	 * 打印表，带星号，无where语句
+	/**
+	 * @Description  打印表，带星号，无where语句
+	 * 
 	 * 
 	 */
 	public boolean PrintStarWithSingleTableWithoutWhere() throws IOException{
+		if(CheakPath(getCurrentPath())==false){
+			return false;
+		}
 		if(getTableName().size()==1){
 			String Table=getTableName().get(0);
 			setCurrentTable(Table);
@@ -96,13 +110,16 @@ public class Select {
 		
 		return true;
 	}
-	/*
-	 * 
+	/**
+	 * @see
 	 * 打印表，无星号，单表，指定列，无where子句
 	 * 
 	 */
 	
 	public boolean PrintSpecifiedColumnsWithouWhere() throws IOException{
+		if(CheakPath(getCurrentPath())==false){
+			return false;
+		}
 		if(getTableName().size()==1){
 			String Table=getTableName().get(0);
 			setCurrentTable(Table);
@@ -131,9 +148,41 @@ public class Select {
 		
 		return true;
 	}
-	
-	/*
+	/**
+	 * @see
+	 * 在where子语句下。打印指定列或者*号情况
 	 * 
+	 */
+	public boolean PrintWhere() throws IOException{
+		if(CheakPath(getCurrentPath())==false){
+			System.out.println("路径错误");
+			return false;
+		}
+		Result = columnTools.whereStatement();
+		/**
+		 * @see
+		 * TODO 提取表达式，先and语句处理，然后是or语句
+		 * 
+		 * 行数确定好，再进行列数的确定
+		 * 
+		 */
+		
+		if(IsStart==true){
+
+			
+			
+
+		}else{
+			
+		}
+		
+		
+		return false;
+	}
+	
+	
+	/**
+	 * @see
 	 * 已知行
 	 * 
 	 * 打印所有列,也就是 符号 *
@@ -172,7 +221,7 @@ public class Select {
 	}
 	
 	
-//	/*
+//	/**
 //	 * 打印指定一系列的列
 //	 * 无where
 //	 * 
@@ -181,7 +230,9 @@ public class Select {
 //		
 //	}
 	
-	/*
+	/**
+	 * 
+	 * @see
 	 * 已知行
 	 * 打印指定列
 	 * 
@@ -213,7 +264,7 @@ public class Select {
 			ColumnPosition.put(data.get(0)[i], i);
 		}
 		
-		columnTools.printRaw(columnName, columnName);
+		columnTools.printOneLine(columnName, columnName);
 		System.out.println();
 		String[] OneLine =new String[columnName.length];
 		for(int i=0;i<rows.length;i++){
@@ -233,7 +284,9 @@ public class Select {
 		
 	}
 	
-	/*
+	/**
+	 * 
+	 * @see
 	 * 打印所有行
 	 */
 	
@@ -259,7 +312,9 @@ public class Select {
 		
 	}
 	
-	/*
+	/**
+	 * 
+	 * @see
 	 * 打印列表参数
 	 * 
 	 */
@@ -287,7 +342,9 @@ public class Select {
 	
 	
 	
-	/*
+	/**
+	 * 
+	 * @see
 	 * 只打印一行，不带列表参数
 	 * 
 	 */
@@ -306,7 +363,10 @@ public class Select {
 	
 	
 	
-	/*
+	/**
+	 * 
+	 * 
+	 * @see
 	 * 只打印一行，带列表参数
 	 */
 	
@@ -331,7 +391,8 @@ public class Select {
 	}
 	
 	
-	/*
+	/**
+	 * @see
 	 * 
 	 * 已知行
 	 * 打印所有列
