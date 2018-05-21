@@ -1059,10 +1059,22 @@ void SelectBaseStatement():
 //  
 
   {
+
     if(MySQL.state==MySQL.SDT){
+      try {
+        SQL_select.Init();
+      } catch (IOException e1) {
+        
+        e1.printStackTrace();
+      }
       if(SQL_select.isIsWhere()==true){
         // TODO 先执行result,然后打印
-        SQL_select.PrintWhere();
+        try {
+          SQL_select.PrintWhere();
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
 
 
 
@@ -1230,8 +1242,8 @@ void WhereStatement():
   SQLCondition()(SQLCondition())*
   {
     if(MySQL.state==MySQL.SDT){
-      System.out.println("开始批量执行OR操作");
-      SQL_select.columnTools.OperationOr();
+      //System.out.println("开始批量执行OR操作");
+      //SQL_select.columnTools.OperationOr();
       }
   }
 
@@ -1251,37 +1263,10 @@ void SQLCondition():
 //  ( "(" )*
   
   (
-   SQLLogicalExpression() 
-   ( "AND"
-   {
-    if(MySQL.state==MySQL.AST){
-      System.out.println("AND");
-      }
-
-      if(MySQL.state==MySQL.SDT){
-        SQL_select.columnTools.Operation.add("AND");
-        }
-
-   }
+   SQLLogicalExpression()
    
-   SQLLogicalExpression())*
+   (   SQLAnd_Or()  )*
 
-
-   ( "OR"
-   {
-    if(MySQL.state==MySQL.AST){
-      System.out.println("OR");
-      }
-
-      if(MySQL.state==MySQL.SDT){
-        SQL_select.columnTools.Operation.add("OR");
-      }
-
-
-
-   }
-   
-   SQLLogicalExpression())*
 
   )
 
@@ -1289,6 +1274,54 @@ void SQLCondition():
   
 //  ( ")" )*
 }
+
+void SQLAnd_Or():
+{}
+{
+   (     SQLAND()   |    SQLOR()
+   )
+}
+
+void SQLAND():
+{}
+{
+  ( "AND"
+  {
+   if(MySQL.state==MySQL.AST){
+     System.out.println("AND");
+     }
+
+     if(MySQL.state==MySQL.SDT){
+       SQL_select.columnTools.Operation.add("AND");
+       }
+
+  }
+  
+  SQLLogicalExpression() )
+
+}
+
+void SQLOR():
+{}
+{
+  ( "OR"
+  {
+   if(MySQL.state==MySQL.AST){
+     System.out.println("OR");
+     }
+
+     if(MySQL.state==MySQL.SDT){
+       SQL_select.columnTools.Operation.add("OR");
+     }
+
+
+
+  }
+  
+  SQLLogicalExpression() )
+
+}
+
 //逻辑表达式
 void SQLLogicalExpression():
 {

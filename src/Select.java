@@ -45,9 +45,13 @@ public class Select {
 	
 	
 	public boolean Init() throws IOException{
-		if(CheakPath(getCurrentPath())==false){
-			System.out.println("路径错误");
-			return false;
+//		if(CheakPath(getCurrentPath())==false){
+//			System.out.println("路径错误");
+//			return false;
+//		}
+		if(getTableName().size()==1){
+			currentTable=getTableName().get(0);
+			
 		}
 		csvtools.setCurrentDatabase(currentDatabase);
 		csvtools.setCurrentTable(currentTable);
@@ -154,11 +158,23 @@ public class Select {
 	 * 
 	 */
 	public boolean PrintWhere() throws IOException{
-		if(CheakPath(getCurrentPath())==false){
+		if(CheakPath(getCurrentTable())==false){
 			System.out.println("路径错误");
 			return false;
 		}
 		Result = columnTools.whereStatement();
+		if(Result.get(0).length<=0){
+			System.out.println("未找到符合条件的数据");
+			return false;
+		}
+		/**
+		 * result 的行数要和打印的接口一致才行
+		 * 
+		 */
+		for(Integer e : Result.get(0)){
+			System.out.println(e+"  ");
+			e++;
+		}
 		/**
 		 * @see
 		 * TODO 提取表达式，先and语句处理，然后是or语句
@@ -166,21 +182,77 @@ public class Select {
 		 * 行数确定好，再进行列数的确定
 		 * 
 		 */
-		
+		List<String[]> data = getData();
+		String[] columnName = data.get(0);
+		System.out.println("============================");
+		System.out.println("开始打印");
 		if(IsStart==true){
-
+			PrintColumn(getCurrentTable(), columnName, Result.get(0));
 			
 			
 
 		}else{
-			
+			String[] oneLine = csvtools.ListTransferOneLine(getShowColumn());
+			PrintColumn(getCurrentTable(), oneLine, Result.get(0));
 		}
+		System.out.println("============================");
 		
 		
 		return false;
 	}
 	
-	
+	/**
+	 * 
+	 * @see 打印第几行，就是第几行，所以输入行数的一定要调整
+	 * @param path
+	 * @param columnName
+	 * @param rows
+	 * @return
+	 * @throws IOException
+	 */
+	public boolean PrintColumn(String path,String[] columnName,Integer[] rows) throws IOException {
+		if(CheakPath(path)==false){
+			return false;
+		}
+		if(columnName==null&&columnName.length==0){
+			System.out.println("未指定列名");
+			return false;
+		}
+		if(rows==null&&rows.length==0){
+			System.out.println("未指定行号");
+			return false;
+		}
+		
+		
+
+		
+//		csvtools.setCurrentDatabase("TEST");
+		List<String[]> data = getData();
+		HashMap<String, Integer> ColumnPosition = new HashMap<>();
+		for(int i = 0 ;i <data.get(0).length;i++){
+			ColumnPosition.put(data.get(0)[i], i);
+		}
+		
+		columnTools.printOneLine(columnName, columnName);
+		System.out.println();
+		String[] OneLine =new String[columnName.length];
+		for(int i=0;i<rows.length;i++){
+			for(int j = 0;j<columnName.length;j++){
+//				OneLine[j]=data.get(i+2)[ColumnPosition.get(columnName[j])];
+				OneLine[j]=data.get(rows[i])[ColumnPosition.get(columnName[j])];
+			}
+			columnTools.printOneLine(OneLine, columnName);
+			System.out.println();
+		}
+		
+		
+		
+		
+		
+		return true;
+		
+	}
+
 	/**
 	 * @see
 	 * 已知行
@@ -269,7 +341,9 @@ public class Select {
 		String[] OneLine =new String[columnName.length];
 		for(int i=0;i<rows.length;i++){
 			for(int j = 0;j<columnName.length;j++){
-				OneLine[j]=data.get(i+2)[ColumnPosition.get(columnName[j])];
+				//很严重的BUG
+				//OneLine[j]=data.get(i+2)[ColumnPosition.get(columnName[j])];
+				OneLine[j]=data.get(rows[i])[ColumnPosition.get(columnName[j])];
 			}
 			columnTools.printOneLine(OneLine, columnName);
 			System.out.println();

@@ -70,27 +70,54 @@ public class ColumnTools {
 		
 		LogicalExpression();
 		ExecAnd_Or();
+		System.out.println("Result size = "+ Result.size());
+		
 		 return Result;
 	}
+	/**
+	 * 
+	 * @see 应该充分利用链表的特性。而不能像数组一样操作
+	 * 
+	 */
 	public void ExecAnd_Or(){
 		List<String[]> data =getData();
 		List<Integer[]>  result =getResult();
 		List<String> newOperation =new LinkedList<>();
-		for(int i=0;i<Operation.size();i++){
-			if(Operation.get(i).equals("AND")==true){
-				OperationAnd(i,i+1);
-				
-			}
-//			if(Operation.get(i).equals("OR")==true){
-//				newOperation.add("OR");	
+//		for(int i=0;i<Operation.size();i++){
+//			if(Operation.get(i).equals("AND")==true){
+//				OperationAnd(i,i+1);
+//				
 //			}
-
+////			if(Operation.get(i).equals("OR")==true){
+////				newOperation.add("OR");	
+////			}
+//
+//		}
+		int i=0;
+		for(String e : Operation){
+			if(e.equals("AND")==true){
+				OperationAnd(i,i+1);
+				i--;
+			}
+			i++;
 		}
-		for(int i=0;i<Operation.size();i++){
-			if(Operation.get(i).equals("OR")==true){
-				OperationOr(i,i+1);
+		i=0;
+		for(String e : Operation){
+			if(e.equals("AND")==true){
+				Operation.remove(i);
+				i--;
 				
 			}
+			i++;
+			
+		}
+		i=0;
+		for(String e : Operation){
+			if(e.equals("OR")==true){
+				OperationOr(0, 1);
+				
+			}
+			i++;
 
 		}
 	}
@@ -166,7 +193,12 @@ public class ColumnTools {
 		int i=0;
 		for(String e : CompareTo){
 			String name=ColumnName.get(i);
+
 			String value=ColumnValue.get(i);
+			if(value.charAt(0)<='z'&&value.charAt(0)>='a'
+					||value.charAt(0)<='Z'&&value.charAt(0)>='A'){
+				value="'"+value+"'";
+			}
 			i++;
 			if(e.equals(Equal)==true){
 				ExecEqual(name,value);
@@ -186,6 +218,16 @@ public class ColumnTools {
 			if(e.equals(LessThan)==true){
 				ExecLessThan(name, value);
 			}
+			System.out.println("column name = "+ name );
+			for(Integer ee : Result.get(i-1)){
+				
+					System.out.print( ee+" ");
+				
+				
+			}
+			System.out.println();
+			
+			
 		}
 		
 
@@ -196,6 +238,7 @@ public class ColumnTools {
 		if(name==null||value==null){
 			return false;
 		}
+
 		List<String[]> data =getData();
 		int index = HeaderColumn.get(name);
 		List<Integer> ResultLine=new LinkedList<>();
@@ -218,8 +261,10 @@ public class ColumnTools {
 		for(int i=2;i<data.size();i++){
 			if(data.get(i)[index].equals(value)==false){
 				ResultLine.add(i);
+				
 			}
 		}
+		
 		Result.add(ListArrayToIntArray(ResultLine)) ;
 		return true;
 		
@@ -292,6 +337,40 @@ public class ColumnTools {
 	public boolean OperationAnd(int front, int behind){
 		Integer[] Frontresult =Result.get(front);
 		Integer[] Behindresult =Result.get(behind);
+		Set<Integer> setAll = new HashSet<>();
+		Set<Integer> setResult = new HashSet<>();
+		for(Integer e : Frontresult){
+			setAll.add(e);
+		}
+		for(Integer e : Behindresult){
+			if(setAll.contains(e) ==true){
+				setResult.add(e);
+			}
+		}
+		Integer[] result=new Integer[setResult.size()];
+		int i=0;
+		for(Integer e: setResult){
+			result[i]=e;
+			i++;
+		}
+		Result.set(front,result);
+		Result.remove(behind);
+		
+		
+		return true;
+	}
+	
+	public Set<Integer> IntegerArrayToSet(Integer[] intArray){
+		Set<Integer> setInteger = new HashSet<>();
+		for(Integer e : intArray){
+			setInteger.add(e);
+		}
+		return setInteger;
+	}
+
+	public boolean OperationOr(int front, int behind){
+		Integer[] Frontresult =Result.get(front);
+		Integer[] Behindresult =Result.get(behind);
 //		Set<Integer> FrontSet=IntegerArrayToSet(Frontresult);
 //		Set<Integer> BehindSet=IntegerArrayToSet(Behindresult);
 		Set<Integer> setAll = new HashSet<>();
@@ -307,23 +386,8 @@ public class ColumnTools {
 			result[i]=e;
 			i++;
 		}
-		Result.set(front,	 result);
-		Result.set(behind,	 result);
-		
-		
-		return true;
-	}
-	
-	public Set<Integer> IntegerArrayToSet(Integer[] intArray){
-		Set<Integer> setInteger = new HashSet<>();
-		for(Integer e : intArray){
-			setInteger.add(e);
-		}
-		return setInteger;
-	}
-
-	public boolean OperationOr(int front, int behind){
-
+		Result.set(front,result);
+		Result.remove(behind);
 		return true;
 	}
 	
