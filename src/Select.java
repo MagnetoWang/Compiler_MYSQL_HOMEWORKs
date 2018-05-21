@@ -17,11 +17,17 @@ import com.sun.org.apache.xml.internal.security.Init;
  * 
  */
 public class Select {
+	//存放最终选择的行
 	private List<Integer[]> Result = new LinkedList<>();
+	//存放 选择的表名
 	private List<String> TableName= new LinkedList<>();
+	//存放打印的列表
 	private List<String> ShowColumn = new LinkedList<>();
+	//检查有无 where
 	private boolean IsWhere = false;
+	//检查有无*
 	private boolean IsStart = false;
+	//存放整张表
 	private List<String[]> data = new LinkedList<>();
 	
 	
@@ -70,7 +76,10 @@ public class Select {
 		return false;
 		
 	}
-	
+	/*
+	 * 打印表，带星号，无where语句
+	 * 
+	 */
 	public boolean PrintStarWithSingleTableWithoutWhere() throws IOException{
 		if(getTableName().size()==1){
 			String Table=getTableName().get(0);
@@ -87,7 +96,41 @@ public class Select {
 		
 		return true;
 	}
+	/*
+	 * 
+	 * 打印表，无星号，单表，指定列，无where子句
+	 * 
+	 */
+	
+	public boolean PrintSpecifiedColumnsWithouWhere() throws IOException{
+		if(getTableName().size()==1){
+			String Table=getTableName().get(0);
+			setCurrentTable(Table);
+			Init();
+//			columnTools.setShowColumn(getShowColumn());
+			csvtools.ReadAll(getCurrentTable());
+			setData(csvtools.getData());
+			
+			int[] row=new int[data.size()-2];
+			for(int i=0;i<row.length;i++){
+				row[i]=i;
+			}
+			String[] oneLine = csvtools.ListTransferOneLine(getShowColumn());
+			
+			PrintColumn(getCurrentTable(), oneLine, row);
+			
+			
+			
+			
 
+		}else{
+			System.out.println("打印表失败");
+			return false;
+		}
+		
+		
+		return true;
+	}
 	
 	/*
 	 * 
@@ -128,6 +171,16 @@ public class Select {
 		
 	}
 	
+	
+//	/*
+//	 * 打印指定一系列的列
+//	 * 无where
+//	 * 
+//	 */
+//	public boolean PrintSpecifiedColumn(){
+//		
+//	}
+	
 	/*
 	 * 已知行
 	 * 打印指定列
@@ -154,8 +207,6 @@ public class Select {
 
 		
 //		csvtools.setCurrentDatabase("TEST");
-		csvtools.ReadAll(path);
-		setData(csvtools.getData());
 		List<String[]> data = getData();
 		HashMap<String, Integer> ColumnPosition = new HashMap<>();
 		for(int i = 0 ;i <data.get(0).length;i++){
@@ -167,12 +218,14 @@ public class Select {
 		String[] OneLine =new String[columnName.length];
 		for(int i=0;i<rows.length;i++){
 			for(int j = 0;j<columnName.length;j++){
-				OneLine[j]=data.get(i)[ColumnPosition.get(columnName[j])];
+				OneLine[j]=data.get(i+2)[ColumnPosition.get(columnName[j])];
 			}
+			columnTools.printOneLine(OneLine, columnName);
+			System.out.println();
 		}
 		
-		columnTools.printRaw(OneLine, columnName);
-		System.out.println();
+		
+		
 		
 		
 		return true;

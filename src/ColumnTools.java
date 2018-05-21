@@ -21,6 +21,7 @@ public class ColumnTools {
 	private List<String> ColumnValue =new LinkedList<>();
 	private List<String> CompareTo =new LinkedList<>();
 	private List<Integer[]> Result = new LinkedList<>();
+	private List<String> ShowColumn=new LinkedList<>();
 	
 	private List<String[]> data;
 	private HashMap<String, String> Header = new HashMap<>();
@@ -97,12 +98,13 @@ public class ColumnTools {
 
 	/**
 	 * 
+	 * 
+	 *  读取表达式的函数
 	 *  ( "=" | "!="  | "<>" | ">" | ">=" | "<" | "<=")
 	 * 
 	 */
 	public boolean LogicalExpression(){
 		
-
 
 
 		return true;
@@ -119,14 +121,50 @@ public class ColumnTools {
 
 		return true;
 	}
-
-
-
-
-
-		/*
+	
+	
+	/*
 	 * 传入一行数据,和列名
-	 * 打印一行数据
+	 * 单纯的打印某一行数据。只有一行数据，不包括任何多余信息
+	 * 
+	 */
+	public void printOneLine(String[] OneLine,String[] ColumnName){
+		int length =ColumnName.length;
+		int diff=0;
+	
+		
+		for(int i =0 ;i<length;i++){
+			if(ColumnName[i].length()==OneLine[i].length()){
+				System.out.print(OneLine[i]);
+			}
+			if(ColumnName[i].length()>OneLine[i].length()){
+				diff=ColumnName[i].length()-OneLine[i].length();
+				System.out.print(OneLine[i]);
+
+				
+				
+			}
+			
+			if(ColumnName[i].length()<OneLine[i].length()){
+				diff=OneLine[i].length()-ColumnName[i].length();
+				System.out.print(OneLine[i]);
+
+			}
+			System.out.print(" ");
+			System.out.print("|");
+		}
+		
+	}
+	
+	
+
+
+
+
+
+	/*
+	 * 传入一行数据,和列名
+	 * 打印一行数据包括列名
 	 * 
 	 */
 	public void printRaw(String[] OneLine,String[] ColumnName){
@@ -307,6 +345,22 @@ public class ColumnTools {
 
 	public void setCompareTo(List<String> compareTo) {
 		CompareTo = compareTo;
+	}
+
+
+
+
+
+	public List<String> getShowColumn() {
+		return ShowColumn;
+	}
+
+
+
+
+
+	public void setShowColumn(List<String> showColumn) {
+		ShowColumn = showColumn;
 	}
 	
 

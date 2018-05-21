@@ -181,6 +181,30 @@ public class SQL_CSVTOOLS {
 	}
 	
 	/**
+	 * 
+	 * List 转换 String[]
+	 *  @return String[]
+	 * 
+	 * */
+	
+	public String[] ListTransferOneLine(List<String> list){
+		if(list.size()<=0){
+			System.out.println("传入错误列表");
+			return null;
+		}
+
+		String[] oneLine = new String[list.size()];
+		int i=0;
+		for(String e:list){
+			oneLine[i]=e;
+			i++;
+		}
+
+
+		return oneLine;
+	}
+	
+	/**
 	 * 插入值在最后一行
 	 * @throws IOException 
 	 * 

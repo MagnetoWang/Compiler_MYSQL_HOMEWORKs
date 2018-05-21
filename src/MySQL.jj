@@ -1011,11 +1011,18 @@ void SelectStatement():
 
     }
 
+
+
+  }
+
+  {
+      SelectBaseStatement();
+    
   }
 
 
 
-   SelectBaseStatement()
+  
    ";"
    {
 
@@ -1063,13 +1070,27 @@ void SelectBaseStatement():
             SQL_select.PrintStarWithSingleTableWithoutWhere();
           } catch (IOException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+           
           }
 
 
 
         }else{
-          //按照指定列，和表来打印数据
+          // TODO 按照指定列，和表来打印数据
+          if(SQL_select.isIsWhere()==true){
+            // TODO 1有where的情况，先选择符合条件的行
+          }else{
+            // TODO 无where,按指定列打印
+            try{
+              SQL_select.PrintSpecifiedColumnsWithouWhere();
+
+            }catch(IOException e){
+              e.printStackTrace();
+
+            }
+           
+          }
+
         }
       }
 
