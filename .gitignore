@@ -1,1 +1,10 @@
 /bin/
+/lib/
+.classpath
+.project
+.settings
+/src/mysql/
+src/*.jjt
+src/*.txt
+
+src/mysql/*.csv
